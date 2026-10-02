@@ -154,7 +154,7 @@ export function CuratedShortlist({
                             </span>
                             <button
                               type="button"
-                              className="btn btn--link"
+                              className="mc-btn mc-btn--ghost mc-btn--small sl-swap"
                               onClick={() => handleSwap(outfit, product.id)}
                               disabled={!canSwap}
                               aria-label={`Swap this piece: ${product.name}${canSwap ? '' : ' (no alternatives available)'}`}
@@ -180,7 +180,7 @@ export function CuratedShortlist({
 
                   <button
                     type="button"
-                    className={`btn ${selected ? 'btn--secondary' : 'btn--primary'}`}
+                    className={`mc-btn ${selected ? '' : 'mc-btn--primary'}`}
                     aria-pressed={selected}
                     onClick={() => onSelectOutfit(outfit.id)}
                   >

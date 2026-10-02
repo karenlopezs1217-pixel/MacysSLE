@@ -190,8 +190,12 @@ function toOutfit(
 
 export type ShortlistMode = 'outfits' | 'items' | 'none';
 
+export type ShortlistReason = 'no-stock' | 'no-occasion' | 'over-budget' | 'no-complete-outfit';
+
 export interface ShortlistSummary {
   mode: ShortlistMode;
+  /** Why the shortlist is not a full set of outfits (absent when outfits were found). */
+  reason?: ShortlistReason;
   /** Explanation for `items` / `none`. Absent when full outfits were found. */
   message?: string;
 }
@@ -238,6 +242,7 @@ function assemble(request: CompleteShopperRequest, catalog: Catalog): { outfits:
       outfits: [],
       summary: {
         mode: 'none',
+        reason: 'no-stock',
         message: `Nothing is in stock in size ${request.size} at ${store} in the sample data. Try a different size or store.`,
       },
     };
@@ -247,6 +252,7 @@ function assemble(request: CompleteShopperRequest, catalog: Catalog): { outfits:
       outfits: [],
       summary: {
         mode: 'none',
+        reason: 'no-occasion',
         message: `${stocked.length} ${stocked.length === 1 ? 'piece is' : 'pieces are'} in stock in size ${request.size} at ${store}, but none are suited to ${occasion.toLowerCase()}. Try a different occasion.`,
       },
     };
@@ -274,7 +280,7 @@ function assemble(request: CompleteShopperRequest, catalog: Catalog): { outfits:
         : `No complete outfit fits ${budget} (the lowest qualifying outfit total is ${formatPrice(cheapestOutfit / 100)})`;
     return {
       outfits: singles.map((q, i) => toOutfit(`outfit-${i + 1}`, [q], i === 0, request, catalog)),
-      summary: { mode: 'items', message: `${why}, so these are individual pieces that qualify on their own.` },
+      summary: { mode: 'items', reason: cheapestOutfit === null ? 'no-complete-outfit' : 'over-budget', message: `${why}, so these are individual pieces that qualify on their own.` },
     };
   }
 
@@ -283,6 +289,7 @@ function assemble(request: CompleteShopperRequest, catalog: Catalog): { outfits:
     outfits: [],
     summary: {
       mode: 'none',
+      reason: 'over-budget',
       message: `Everything that qualifies costs more than your ${budget} budget: the least expensive qualifying piece is ${formatPrice(cheapestPiece / 100)}${outfitPart}. Adjust the budget to see options.`,
     },
   };

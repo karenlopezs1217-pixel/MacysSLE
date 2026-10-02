@@ -1,0 +1,64 @@
+/* Feature-scoped layout only. Colors, type, buttons, cards and badges come from src/shared/theme.css. */
+.stock-price-handoff { display: grid; gap: var(--space-6); background: var(--color-white); }
+.stock-price-handoff__header { border-bottom: 1px solid var(--color-border); padding-bottom: var(--space-3); }
+.stock-price-handoff__header .mc-wordmark { margin: 0 0 var(--space-1); }
+.stock-price-handoff__title { font-size: var(--text-xl); margin: 0; }
+
+.stock-price-handoff__section { display: grid; gap: var(--space-3); }
+.stock-price-handoff__section-head { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.stock-price-handoff__section-head .mc-section-title { margin: 0; }
+.stock-price-handoff__handoff-head { margin-top: var(--space-3); }
+.stock-price-handoff__lede { margin: 0; }
+
+.stock-price-handoff__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.stock-price-handoff__item { display: grid; grid-template-columns: auto 1fr; gap: var(--space-4); align-items: start; }
+.stock-price-handoff__img { display: block; border-radius: var(--radius-sm); }
+.stock-price-handoff__item-body { display: grid; gap: var(--space-2); min-width: 0; }
+.stock-price-handoff__item-body p { margin: 0; }
+.stock-price-handoff__item-name { font-size: var(--text-md); margin: 0; }
+.stock-price-handoff__size-row { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; font-size: var(--text-sm); }
+.stock-price-handoff__select {
+  font: inherit; min-height: 36px; padding: 4px 8px; border: 1px solid #8A8A8A; border-radius: var(--radius-sm);
+  background: var(--color-white); color: var(--color-black); max-width: 100%;
+}
+.stock-price-handoff__loc { font-size: var(--text-sm); }
+.stock-price-handoff__need { font-size: var(--text-sm); color: var(--color-danger); }
+.stock-price-handoff__fallback { display: grid; gap: var(--space-2); font-size: var(--text-sm); padding: var(--space-3); }
+.stock-price-handoff__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.stock-price-handoff__sim-note { font-size: var(--text-xs); }
+.stock-price-handoff__hold { display: grid; gap: var(--space-1); font-size: var(--text-sm); }
+.stock-price-handoff__hold p, .stock-price-handoff__confirm p, .stock-price-handoff__terminal p { margin: 0; }
+.stock-price-handoff__hold .mc-btn { justify-self: start; margin-top: var(--space-1); }
+.stock-price-handoff__hold-head { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+
+.stock-price-handoff__price-card { display: grid; gap: var(--space-1); }
+.stock-price-handoff__price-card > p { margin: 0; }
+.stock-price-handoff__price-card > .mc-btn { justify-self: start; padding-left: 0; }
+.stock-price-handoff__you-pay-label { font-size: var(--text-sm); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: .06em; }
+.stock-price-handoff__you-pay { font-size: var(--text-2xl); font-weight: var(--weight-bold); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stock-price-handoff__breakdown { border-top: 1px solid var(--color-border); padding-top: var(--space-3); margin-top: var(--space-2); }
+.stock-price-handoff__table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.stock-price-handoff__table th { text-align: left; font-weight: var(--weight-regular); padding: 6px 8px 6px 0; }
+.stock-price-handoff__table td { text-align: right; padding: 6px 0; white-space: nowrap; vertical-align: top; }
+.stock-price-handoff__row-sub th, .stock-price-handoff__row-sub td { border-top: 1px solid var(--color-border); }
+.stock-price-handoff__row-total th, .stock-price-handoff__row-total td { border-top: 2px solid var(--color-black); font-weight: var(--weight-bold); font-size: var(--text-md); }
+.stock-price-handoff__sub { font-size: var(--text-sm); margin: var(--space-4) 0 var(--space-1); }
+.stock-price-handoff__notes { margin: 0; padding-left: var(--space-5); font-size: var(--text-sm); display: grid; gap: var(--space-1); }
+
+.stock-price-handoff__fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: var(--space-2); min-width: 0; }
+.stock-price-handoff__legend { font-weight: var(--weight-bold); margin-bottom: var(--space-2); padding: 0; }
+.stock-price-handoff__choice { cursor: pointer; }
+.stock-price-handoff__fieldset p { margin: 0; }
+.stock-price-handoff__pickup-stores { display: grid; gap: var(--space-1); font-size: var(--text-sm); }
+.stock-price-handoff__terminal, .stock-price-handoff__confirm { display: grid; gap: var(--space-2); }
+.stock-price-handoff__terminal-amount { font-size: var(--text-xl); font-weight: var(--weight-bold); }
+
+.stock-price-handoff__empty { display: grid; gap: var(--space-2); justify-items: start; }
+.stock-price-handoff__nav { display: flex; gap: var(--space-2); flex-wrap: wrap; border-top: 1px solid var(--color-border); padding-top: var(--space-3); }
+.stock-price-handoff__dev { font-size: var(--text-sm); border: 1px dashed #8A8A8A; border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3); }
+.stock-price-handoff__dev-row { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2); }
+.stock-price-handoff__dev-row .stock-price-handoff__select { flex: 1 1 220px; }
+
+@media (max-width: 380px) {
+  .stock-price-handoff__item { grid-template-columns: 1fr; }
+}

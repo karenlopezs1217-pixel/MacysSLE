@@ -37,3 +37,7 @@
 @media (min-width: 640px) {
   .ti-fields { grid-template-columns: repeat(2, 1fr); }
 }
+
+.ti-examples { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.ti-example { border-radius: var(--radius-pill); }
+.ti-actions .mc-btn--primary { flex: 1 1 200px; max-width: 360px; }

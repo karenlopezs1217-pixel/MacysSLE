@@ -8,7 +8,7 @@
  * Teammates: extend this file (e.g. add offers / tax / delivery assumptions for Price & Handoff)
  * rather than creating another catalog. Append only, so merges stay trivial.
  */
-import type { InventoryRecord, Occasion, Product, StockStatus, Store } from './types';
+import type { InventoryRecord, Occasion, Offer, Product, ProductFit, StockStatus, Store } from './types';
 
 export const SAMPLE_DATA_LABEL = 'Sample data — not live inventory, prices or store details';
 
@@ -52,6 +52,9 @@ const NUMERIC_NO_4 = NUMERIC.slice(1);
 const NUMERIC_TO_18 = NUMERIC.slice(0, -1);
 const LETTER = ['XS', 'S', 'M', 'L', 'XL'];
 
+/** Garment color per product (used by placeholder art and the try-on overlay). */
+export const PRODUCT_COLORS: Record<string, string> = {};
+
 function product(
   id: string,
   name: string,
@@ -61,6 +64,7 @@ function product(
   fitNote: string,
   color: string,
 ): Product {
+  PRODUCT_COLORS[id] = color;
   return { id, name, imageUrl: placeholderImage(category, color), availableSizes, price, category, fitNote };
 }
 
@@ -196,6 +200,17 @@ const STOCK_OVERRIDES: Array<[string, string, string, StockStatus]> = [
   // Downtown is out of the blazer in size 18 and the sheath dress in size 14.
   ['prod-tailored-blazer', 'store-downtown', '18', 'out_of_stock'],
   ['prod-sheath-dress', 'store-downtown', '14', 'out_of_stock'],
+  // Demo: the blouse runs small (try-on suggests 18). Out at Downtown, in stock at Lakeside -> fallback store.
+  ['prod-silk-blouse', 'store-downtown', '18', 'out_of_stock'],
+  ['prod-silk-blouse', 'store-lakeside', '18', 'in_stock'],
+  ['prod-silk-blouse', 'store-westgate', '18', 'out_of_stock'],
+  // Demo: the pencil skirt runs small (suggests 18 at some stores). Out everywhere -> ship-to-home path.
+  ['prod-pencil-skirt', 'store-downtown', '18', 'out_of_stock'],
+  ['prod-pencil-skirt', 'store-lakeside', '18', 'out_of_stock'],
+  ['prod-pencil-skirt', 'store-westgate', '18', 'out_of_stock'],
+  // Demo: size-up for the velvet dress is in stock downtown.
+  ['prod-velvet-dress', 'store-downtown', '14', 'in_stock'],
+  ['prod-velvet-dress', 'store-downtown', '12', 'in_stock'],
 ];
 
 function hash(input: string): number {
@@ -257,3 +272,83 @@ export function getInventoryRecord(
 ): InventoryRecord | undefined {
   return inventory.find((r) => r.productId === productId && r.storeId === storeId && r.size === size);
 }
+
+// ---------------------------------------------------------------------------
+// Fit signals (Component 3), distances, offers and the demo clock (Components 4-5).
+// All invented for the prototype.
+// ---------------------------------------------------------------------------
+
+const votes = (runsSmall: number, trueToSize: number, runsLarge: number) => ({ runsSmall, trueToSize, runsLarge });
+const TRUE = votes(80, 740, 90);
+const SMALL = votes(640, 230, 60);
+const LARGE = votes(60, 260, 520);
+
+const fit = (
+  runs: ProductFit['runs'],
+  cut: ProductFit['cut'],
+  stretch: ProductFit['stretch'],
+  lengthSensitive: boolean,
+  reviews = runs === 'small' ? SMALL : runs === 'large' ? LARGE : TRUE,
+): ProductFit => ({ runs, cut, stretch, lengthSensitive, reviews });
+
+/** Sample fit signals per product. Keep consistent with each `Product.fitNote`. */
+export const PRODUCT_FIT: Record<string, ProductFit> = {
+  'prod-silk-blouse': fit('small', 'relaxed', 'none', false, votes(420, 300, 40)),
+  'prod-oxford-shirt': fit('true', 'regular', 'some', false),
+  'prod-shell-top': fit('true', 'slim', 'some', false),
+  'prod-ponte-trouser': fit('true', 'regular', 'some', true),
+  'prod-wide-leg-trouser': fit('true', 'relaxed', 'none', true),
+  'prod-pencil-skirt': fit('small', 'slim', 'some', false),
+  'prod-tailored-blazer': fit('true', 'slim', 'some', false),
+  'prod-longline-cardigan': fit('true', 'relaxed', 'some', false),
+  'prod-sheath-dress': fit('true', 'slim', 'none', true),
+  'prod-wrap-dress': fit('true', 'regular', 'some', true),
+  'prod-satin-slip-dress': fit('true', 'slim', 'none', true),
+  'prod-velvet-dress': fit('small', 'slim', 'some', true),
+  'prod-sequin-top': fit('small', 'slim', 'none', false),
+  'prod-satin-skirt': fit('true', 'regular', 'some', false),
+  'prod-evening-wrap': fit('true', 'relaxed', 'none', false),
+  'prod-floral-midi': fit('true', 'regular', 'some', true),
+  'prod-chiffon-dress': fit('true', 'relaxed', 'none', true),
+  'prod-lace-shrug': fit('true', 'slim', 'high', false),
+  'prod-boxy-tee': fit('large', 'relaxed', 'some', false),
+  'prod-knit-sweater': fit('true', 'relaxed', 'some', false),
+  'prod-denim-jean': fit('true', 'regular', 'some', true),
+  'prod-linen-pant': fit('true', 'relaxed', 'none', true),
+  'prod-denim-jacket': fit('true', 'regular', 'none', false),
+  'prod-cotton-tee': fit('true', 'regular', 'some', false),
+  'prod-knit-henley': fit('true', 'relaxed', 'some', false),
+  'prod-jogger': fit('true', 'regular', 'high', false),
+  'prod-fleece-jacket': fit('large', 'relaxed', 'none', false),
+  'prod-lounge-dress': fit('true', 'relaxed', 'high', true),
+};
+
+/** Straight-line sample distances between stores, in miles (symmetric, invented). */
+const STORE_DISTANCES: Array<[string, string, number]> = [
+  ['store-downtown', 'store-lakeside', 6.2],
+  ['store-downtown', 'store-westgate', 11.5],
+  ['store-lakeside', 'store-westgate', 8.4],
+];
+
+export function distanceMiles(fromStoreId: string, toStoreId: string): number {
+  if (fromStoreId === toStoreId) return 0;
+  const hit = STORE_DISTANCES.find(
+    ([a, b]) => (a === fromStoreId && b === toStoreId) || (a === toStoreId && b === fromStoreId),
+  );
+  return hit ? hit[2] : Number.POSITIVE_INFINITY;
+}
+
+/** Fixed demo clock (Friday Oct 2, 2026, 2:00 PM local) so offers, holds and ETAs are repeatable. */
+export const DEMO_NOW = new Date(2026, 9, 2, 14, 0, 0);
+
+/**
+ * The ONLY offers that may ever be applied. Validity is relative to DEMO_NOW.
+ * (O5 targets shoes, which this catalog does not carry, so it never applies — on purpose.)
+ */
+export const SAMPLE_OFFERS: Offer[] = [
+  { id: 'O1', label: 'Sample weekend offer: 20% off tops, bottoms and dresses', type: 'percent', value: 20, categories: ['top', 'bottom', 'dress'], validFrom: '2026-10-01', validTo: '2026-10-05', requiresLogin: false, stackable: false },
+  { id: 'O2', label: 'Sample offer: $15 off purchases of $100 or more', type: 'amount', value: 15, minSpend: 100, validFrom: '2026-09-28', validTo: '2026-10-10', requiresLogin: false, stackable: false },
+  { id: 'O3', label: 'Sample rewards offer: extra 10% for signed-in members', type: 'percent', value: 10, validFrom: '2026-09-01', validTo: '2026-12-31', requiresLogin: true, stackable: true },
+  { id: 'O4', label: 'Sample offer: 30% off outerwear (EXPIRED)', type: 'percent', value: 30, categories: ['outerwear'], validFrom: '2026-09-01', validTo: '2026-09-30', requiresLogin: false, stackable: false },
+  { id: 'O5', label: 'Sample offer: $25 off shoes (starts Oct 15)', type: 'amount', value: 25, categories: ['shoes'], validFrom: '2026-10-15', validTo: '2026-10-20', requiresLogin: false, stackable: false },
+];

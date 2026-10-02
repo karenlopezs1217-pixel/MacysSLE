@@ -1,31 +1,17 @@
-/* Shared design tokens — every feature should use these, not hard-coded colors. */
+/* Aliases so the shell / intake / shortlist styles use the ONE shared palette in theme.css. */
 :root {
-  --color-bg: #f6f4f1;
-  --color-surface: #ffffff;
-  --color-ink: #1f2430;
-  --color-muted: #566070;
-  --color-line: #ddd8d0;
-  --color-primary: #1f4e8c;
-  --color-primary-ink: #ffffff;
-  --color-primary-soft: #e8eff8;
-  --color-accent: #8a5a00;
-  --color-accent-soft: #fdf3dc;
-  --color-ok: #1d6b3a;
-  --color-ok-soft: #e4f3e9;
-  --color-warn: #8a4b00;
-  --color-warn-soft: #fff1de;
-  --color-danger: #a12a2a;
-  --color-danger-soft: #fbe9e9;
-  --color-sample: #5b3f8c;
-  --color-sample-soft: #efe9f8;
-  --focus-ring: 0 0 0 3px #ffffff, 0 0 0 5px #1d4ed8;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --font: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --color-primary: var(--color-red);
+  --color-primary-ink: var(--color-white);
+  --color-primary-soft: #FFF5F6;
+  --color-accent: #8A5A00;
+  --color-accent-soft: #FFF4D6;
+  --color-line: var(--color-border);
+  --color-ok: var(--color-success);
+  --color-ok-soft: #E4F3E9;
+  --color-warn: var(--color-warning);
+  --color-warn-soft: #FFF1DE;
+  --color-danger-soft: #FFF5F6;
+  --color-sample: var(--color-sample-ink);
+  --color-sample-soft: var(--color-sample-bg);
+  --focus-ring: 0 0 0 3px #ffffff, 0 0 0 5px #000000;
 }

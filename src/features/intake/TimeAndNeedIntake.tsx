@@ -38,6 +38,12 @@ const FIELD_LABELS: Record<EssentialField, string> = {
 };
 
 const EXAMPLE = '20 minutes, work outfit, size 16, under $150, this store';
+/** One-tap examples. The last one is intentionally incomplete to show the single clarifying question. */
+const EXAMPLES = [
+  { label: 'Work outfit', text: EXAMPLE },
+  { label: 'Casual, size M', text: '15 minutes, casual, size M, under $120, this store' },
+  { label: 'Wedding guest (missing details)', text: 'something for a wedding guest, this store' },
+];
 
 export function TimeAndNeedIntake({
   request,
@@ -59,6 +65,10 @@ export function TimeAndNeedIntake({
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   // At most ONE clarifying question per intake; a ref avoids stale closures from voice callbacks.
   const questionAskedRef = useRef(false);
+  const replyRef = useRef<HTMLInputElement | null>(null);
+  const findRef = useRef<HTMLButtonElement | null>(null);
+  /** Set when text was just understood, so focus can move to whatever the shopper needs next. */
+  const [justInterpreted, setJustInterpreted] = useState(false);
 
   const voiceSupported = useMemo(() => getSpeechRecognition() !== null, []);
   const missing = missingFields(request);
@@ -67,6 +77,15 @@ export function TimeAndNeedIntake({
   const questionCardVisible = question !== null && !questionAnswered && !complete;
 
   useEffect(() => () => recognitionRef.current?.stop(), []);
+
+  // After text is understood, move focus to the next thing the shopper must do: answer the one
+  // question, or press "Find outfits". (Keyboard, screen-reader and small-screen friendly.)
+  useEffect(() => {
+    if (!justInterpreted) return;
+    setJustInterpreted(false);
+    if (questionCardVisible) replyRef.current?.focus();
+    else if (complete) findRef.current?.focus();
+  }, [justInterpreted, questionCardVisible, complete]);
 
   const storeName = (id: string) => stores.find((s) => s.id === id)?.name ?? id;
   const occasionLabel = (id: string) => occasions.find((o) => o.id === id)?.label ?? id;
@@ -88,6 +107,7 @@ export function TimeAndNeedIntake({
     const next: ShopperRequest = { ...request, ...parsed.fields };
     onRequestChange(next);
     setParsedOnce(true);
+    setJustInterpreted(true);
     setUnderstood(describeUnderstood(parsed));
 
     const stillMissing = missingFields(next);
@@ -194,16 +214,32 @@ export function TimeAndNeedIntake({
           {voiceSupported && (
             <button
               type="button"
-              className={`btn btn--secondary ti-voice${listening ? ' ti-voice--on' : ''}`}
+              className={`mc-btn ti-voice${listening ? ' ti-voice--on' : ''}`}
               aria-pressed={listening}
               onClick={toggleVoice}
             >
               {listening ? 'Stop listening' : 'Speak'}
             </button>
           )}
-          <button type="submit" className="btn btn--primary" disabled={!text.trim()}>
+          <button type="submit" className="mc-btn mc-btn--primary" disabled={!text.trim()}>
             Understand
           </button>
+        </div>
+        <div className="ti-examples" aria-label="Example requests">
+          <span className="ti-help">Try an example:</span>
+          {EXAMPLES.map((ex) => (
+            <button
+              key={ex.label}
+              type="button"
+              className="mc-btn mc-btn--small ti-example"
+              onClick={() => {
+                setText(ex.text);
+                interpret(ex.text, 'text');
+              }}
+            >
+              {ex.label}
+            </button>
+          ))}
         </div>
         <p className="ti-help">
           {voiceSupported
@@ -236,6 +272,7 @@ export function TimeAndNeedIntake({
               </label>
               <input
                 id={ids.reply}
+                ref={replyRef}
                 className="ti-input"
                 type="text"
                 value={reply}
@@ -243,7 +280,7 @@ export function TimeAndNeedIntake({
                 onChange={(e) => setReply(e.target.value)}
                 autoComplete="off"
               />
-              <button type="submit" className="btn btn--secondary" disabled={!reply.trim()}>
+              <button type="submit" className="mc-btn" disabled={!reply.trim()}>
                 Answer
               </button>
             </form>
@@ -357,14 +394,15 @@ export function TimeAndNeedIntake({
       <div className="ti-actions">
         <button
           type="button"
-          className="btn btn--primary"
+          ref={findRef}
+          className="mc-btn mc-btn--primary"
           disabled={!complete}
           aria-describedby={ids.hint}
           onClick={() => isRequestComplete(request) && onSubmit(request)}
         >
           Find outfits
         </button>
-        <button type="button" className="btn btn--ghost" onClick={startOver}>
+        <button type="button" className="mc-btn mc-btn--ghost" onClick={startOver}>
           Start over
         </button>
         <p id={ids.hint} className="ti-help">

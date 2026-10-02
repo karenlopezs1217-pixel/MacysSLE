@@ -185,19 +185,63 @@ describe('Component 2: curated shortlist (via the shell)', () => {
     expect(screen.getByText(/Nothing is in stock in size 2 at Downtown Flagship/)).toBeInTheDocument();
   });
 
-  it('selecting an outfit unlocks later steps and passes shell state to them; editing inputs clears the shortlist', async () => {
+  it('choosing an outfit advances to the fit step and unlocks later steps; editing inputs clears the shortlist', async () => {
     const user = userEvent.setup();
     render(<App />);
-    expect(screen.getAllByText('Choose an outfit in step 2 first.')).toHaveLength(3);
-    await findOutfits(user, '20 minutes, work outfit, size 16, under $150, this store');
-    await user.click(screen.getAllByRole('button', { name: 'Choose this one' })[0]);
-    expect(screen.queryByText('Choose an outfit in step 2 first.')).not.toBeInTheDocument();
-    expect(screen.getAllByText(/Shell state received: selected outfit/)).toHaveLength(3);
+    const step = (n: number) => screen.getByRole('button', { name: new RegExp(`^Step ${n}:`) });
+    for (const n of [2, 3, 4, 5]) expect(step(n)).toBeDisabled();
 
+    await findOutfits(user, '20 minutes, work outfit, size 16, under $150, this store');
+    expect(screen.getByRole('heading', { name: 'Your top picks' })).toBeVisible(); // auto-advanced
+    expect(step(2)).toBeEnabled();
+    expect(step(3)).toBeDisabled();
+
+    await user.click(screen.getAllByRole('button', { name: 'Choose this one' })[0]);
+    expect(screen.getByRole('heading', { name: 'See the fit' })).toBeVisible(); // auto-advanced
+    for (const n of [2, 3, 4, 5]) expect(step(n)).toBeEnabled();
+    expect(screen.getByRole('heading', { name: /Size and fit notes/ })).toBeInTheDocument();
+    expect(screen.getByText(/^Selected:/)).toBeInTheDocument();
+
+    await user.click(step(1));
     await user.clear(field(/Total budget/));
     await user.type(field(/Total budget/), '120');
-    expect(screen.getByText(/press “Find outfits”/)).toBeInTheDocument();
-    expect(screen.getAllByText('Choose an outfit in step 2 first.')).toHaveLength(3);
+    expect(screen.getByText(/Your details changed, so the old options were cleared/)).toBeInTheDocument();
+    for (const n of [2, 3, 4, 5]) expect(step(n)).toBeDisabled();
+  });
+
+  it('the guided flow can be walked with Back and Continue buttons', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await findOutfits(user, '20 minutes, work outfit, size 16, under $150, this store');
+    expect(screen.getByRole('button', { name: /Continue with selected outfit/ })).toBeDisabled();
+    await user.click(screen.getAllByRole('button', { name: 'Choose this one' })[0]);
+    await user.click(screen.getByRole('button', { name: /Continue to stock/ }));
+    expect(screen.getByRole('heading', { name: 'Find it in store' })).toBeVisible();
+    await user.click(screen.getByRole('button', { name: /Continue to price/ }));
+    expect(screen.getByRole('heading', { name: 'Your price and checkout' })).toBeVisible();
+    await user.click(screen.getByRole('button', { name: /Back to stock/ }));
+    await user.click(screen.getByRole('button', { name: /Back to fit/ }));
+    await user.click(screen.getByRole('button', { name: /Back to options/ }));
+    expect(screen.getByRole('heading', { name: 'Your top picks' })).toBeVisible();
+    expect(screen.getByText('Selected', { selector: '.sl-badge' })).toBeInTheDocument(); // selection survives going back
+  });
+
+  it('example chips fill the request in one tap', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Casual, size M' }));
+    expect(field(/^Size/).value).toBe('M');
+    expect(field(/^Occasion/).value).toBe('casual');
+    expect(screen.getByRole('button', { name: 'Find outfits' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Find outfits' })).toHaveFocus(); // next action is ready
+  });
+
+  it('moves focus to the one clarifying question when details are missing', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Wedding guest (missing details)' }));
+    expect(screen.getByLabelText('Your answer')).toHaveFocus();
+    expect(screen.getAllByText(/Quick question/)).toHaveLength(1);
   });
 
   it('End session resets everything', async () => {
@@ -206,6 +250,7 @@ describe('Component 2: curated shortlist (via the shell)', () => {
     await findOutfits(user, '20 minutes, work outfit, size 16, under $150, this store');
     await user.click(screen.getByRole('button', { name: 'End session' }));
     expect(field(/^Size/).value).toBe('');
-    expect(screen.getByText(/press “Find outfits”/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'What do you need today?' })).toBeVisible();
+    expect(screen.getByRole('button', { name: /^Step 2:/ })).toBeDisabled();
   });
 });
