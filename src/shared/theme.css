@@ -1,0 +1,23 @@
+/* Shared design tokens. Do not edit from a feature account. */
+:root {
+  --color-brand: #C8102E;        /* accent red (generic, not a logo) */
+  --color-ink: #1A1A1A;
+  --color-navy: #1F3A5F;
+  --color-muted: #6B7280;
+  --color-surface: #FFFFFF;
+  --color-bg: #F6F7F9;
+  --color-border: #E2E5EA;
+  --color-success: #2E7D5B;
+  --color-warning: #B7791F;
+  --color-danger: #B42318;
+  --color-sample-bg: #FFF4D6;    /* SAMPLE DATA banners */
+  --radius: 12px;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --space-8: 32px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --text-sm: 13px; --text-md: 15px; --text-lg: 18px; --text-xl: 24px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font); color: var(--color-ink); background: var(--color-bg); font-size: var(--text-md); }
+button { font: inherit; cursor: pointer; }
+.sample-badge { display: inline-block; background: var(--color-sample-bg); color: #6B4E00; font-size: 11px;
+  font-weight: 700; letter-spacing: .04em; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; }
