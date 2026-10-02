@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!--
+    Privacy guardrail: connect-src 'none' and form-action 'none' mean this page
+    cannot send anything (including the shopper's photo) off the device.
+  -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Fit Studio</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar" id="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span>Fit Studio</div>
+    <ol class="progress" id="progress" aria-label="Progress" hidden>
+      <li data-step="1">Item</li>
+      <li data-step="2">Your fit</li>
+      <li data-step="3">See it</li>
+      <li data-step="4">Result</li>
+    </ol>
+    <button class="btn btn-ghost btn-sm" id="end-session" hidden>End &amp; erase</button>
+  </header>
+
+  <main id="app">
+    <!-- 0. Attract -->
+    <section class="screen screen-attract" data-screen="attract">
+      <div class="attract-inner">
+        <p class="eyebrow">Virtual try-on &amp; fit</p>
+        <h1 tabindex="-1">Not sure about the fit?<br>See it on you in under a minute.</h1>
+        <p class="lede">Pick an item, answer three quick questions, and get a size you can trust before you head to the fitting room.</p>
+        <button class="btn btn-primary btn-lg" data-go="item">Start</button>
+        <ul class="trust">
+          <li>No sign-in</li>
+          <li>Photo optional — avatars work too</li>
+          <li>Nothing is saved</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 1. Item -->
+    <section class="screen" data-screen="item" hidden>
+      <h2 tabindex="-1">What are you trying on?</h2>
+      <p class="hint">At the kiosk, scan the tag — or tap an item below.</p>
+      <div class="product-grid" id="product-grid"></div>
+    </section>
+
+    <!-- 2. Quick fit questions -->
+    <section class="screen" data-screen="fit" hidden>
+      <h2 tabindex="-1">Three quick questions</h2>
+      <div class="question">
+        <h3 id="q-size">What size do you usually wear?</h3>
+        <div class="chips" role="radiogroup" aria-labelledby="q-size" data-field="usualSize"></div>
+      </div>
+      <div class="question">
+        <h3 id="q-pref">How do you like things to fit?</h3>
+        <div class="chips" role="radiogroup" aria-labelledby="q-pref" data-field="fitPreference"></div>
+      </div>
+      <div class="question">
+        <h3 id="q-height">Your height</h3>
+        <div class="chips" role="radiogroup" aria-labelledby="q-height" data-field="height"></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" data-go="item">Back</button>
+        <button class="btn btn-primary" id="fit-continue" data-go="mode" disabled>Continue</button>
+      </div>
+    </section>
+
+    <!-- 3. Photo or avatar -->
+    <section class="screen" data-screen="mode" hidden>
+      <h2 tabindex="-1">How do you want to see it?</h2>
+      <div class="mode-grid">
+        <button class="mode-card" id="choose-photo">
+          <span class="mode-icon mode-icon-photo" aria-hidden="true"></span>
+          <strong>Use my photo</strong>
+          <span>Most realistic. Taken here, erased when you’re done.</span>
+        </button>
+        <button class="mode-card" id="choose-avatar">
+          <span class="mode-icon mode-icon-avatar" aria-hidden="true"></span>
+          <strong>Use an avatar</strong>
+          <span>Fastest. No photo needed.</span>
+        </button>
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" data-go="fit">Back</button>
+      </div>
+    </section>
+
+    <!-- 3a. Consent (photo path only) -->
+    <section class="screen" data-screen="consent" hidden>
+      <h2 tabindex="-1">Before we use your photo</h2>
+      <ul class="consent-points">
+        <li><strong>Stays on this kiosk.</strong> Your photo is processed on this device only. It is never uploaded or sent anywhere.</li>
+        <li><strong>Not saved.</strong> It is erased the moment you tap “End &amp; erase”, or automatically after 60 seconds of inactivity.</li>
+        <li><strong>A simulation.</strong> The try-on is an approximation to help you choose — not an exact picture of how it will fit.</li>
+      </ul>
+      <label class="consent-check">
+        <input type="checkbox" id="consent-box">
+        <span>I agree to let this kiosk use my photo for this session only.</span>
+      </label>
+      <div class="actions">
+        <button class="btn btn-ghost" id="consent-decline">Use an avatar instead</button>
+        <button class="btn btn-primary" id="consent-accept" disabled>I agree — continue</button>
+      </div>
+    </section>
+
+    <!-- 3b. Capture -->
+    <section class="screen" data-screen="capture" hidden>
+      <h2 tabindex="-1">Take or add a photo</h2>
+      <p class="hint">Stand back so your head and shoulders fit the outline. Face the camera.</p>
+      <div class="camera-wrap">
+        <video id="camera" playsinline muted autoplay></video>
+        <div class="camera-guide" aria-hidden="true"></div>
+        <div class="countdown" id="countdown" aria-live="assertive"></div>
+        <div class="camera-idle" id="camera-idle">
+          <button class="btn btn-primary btn-lg" id="start-camera">Turn on camera</button>
+          <p class="camera-msg" id="camera-msg" role="status"></p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" data-go="mode">Back</button>
+        <label class="btn btn-secondary" for="photo-file">Upload a photo instead</label>
+        <input type="file" id="photo-file" accept="image/*" class="visually-hidden">
+        <button class="btn btn-primary" id="snap" disabled>Take photo</button>
+      </div>
+    </section>
+
+    <!-- 3c. Avatar -->
+    <section class="screen" data-screen="avatar" hidden>
+      <h2 tabindex="-1">Set up your avatar</h2>
+      <div class="avatar-layout">
+        <canvas id="avatar-preview" width="300" height="400" aria-label="Avatar preview"></canvas>
+        <div>
+          <div class="question">
+            <h3 id="q-shape">Body shape</h3>
+            <div class="chips" role="radiogroup" aria-labelledby="q-shape" data-field="shape"></div>
+          </div>
+          <div class="question">
+            <h3 id="q-skin">Skin tone</h3>
+            <div class="swatches" role="radiogroup" aria-labelledby="q-skin" id="skin-swatches"></div>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" data-go="mode">Back</button>
+        <button class="btn btn-primary" id="avatar-done">See it on me</button>
+      </div>
+    </section>
+
+    <!-- 4. Result -->
+    <section class="screen screen-result" data-screen="result" hidden>
+      <div class="stage-col">
+        <div class="stage-wrap">
+          <canvas id="stage" aria-label="Simulated try-on preview"></canvas>
+          <div class="sim-badge" role="note">Simulation</div>
+        </div>
+        <div class="stage-tools" id="stage-tools">
+          <p class="hint">Drag the item to line it up. Pinch or use the slider to match your shoulders.</p>
+          <label class="slider">
+            <span>Shoulder width</span>
+            <input type="range" id="shoulder-range" min="120" max="420" step="2">
+          </label>
+          <button class="btn btn-ghost btn-sm" id="reset-placement">Reset</button>
+        </div>
+        <p class="sim-disclaimer">Simulated preview for guidance only. Actual fit, color and drape may differ.</p>
+      </div>
+
+      <div class="panel">
+        <p class="eyebrow" id="r-brand"></p>
+        <h2 tabindex="-1" id="r-name"></h2>
+        <div class="swatches swatches-sm" id="r-colors" role="radiogroup" aria-label="Color"></div>
+
+        <div class="rec" aria-live="polite">
+          <div class="rec-size">
+            <span class="rec-label">Your size</span>
+            <span class="rec-value" id="r-size"></span>
+          </div>
+          <div>
+            <p class="rec-headline" id="r-headline"></p>
+            <p class="rec-advice" id="r-advice"></p>
+            <p class="rec-evidence" id="r-evidence"></p>
+            <ul class="rec-notes" id="r-notes"></ul>
+            <p class="confidence" id="r-confidence"></p>
+          </div>
+        </div>
+
+        <h3 class="sub">Preview another size</h3>
+        <div class="chips size-chips" id="r-sizes" role="radiogroup" aria-label="Preview size"></div>
+
+        <h3 class="sub">How <span id="r-chosen"></span> fits you</h3>
+        <ul class="fit-map" id="r-fitmap"></ul>
+
+        <div class="actions actions-stack">
+          <button class="btn btn-primary" id="send-fitting">Send to a fitting room</button>
+          <button class="btn btn-ghost" id="try-another">Try another item</button>
+        </div>
+
+        <details class="privacy">
+          <summary>Your privacy this session</summary>
+          <dl>
+            <dt>Photo</dt><dd id="p-photo"></dd>
+            <dt>Uploaded</dt><dd>Never — this kiosk has no way to send it</dd>
+            <dt>Erased</dt><dd>When you tap “End &amp; erase”, or after 60s idle</dd>
+          </dl>
+        </details>
+      </div>
+    </section>
+
+    <!-- 5. Erased confirmation -->
+    <section class="screen screen-erased" data-screen="erased" hidden>
+      <div class="erased-inner">
+        <div class="check" aria-hidden="true"></div>
+        <h2 tabindex="-1" id="erased-title">All done — your session is erased</h2>
+        <p id="erased-detail">Nothing was saved on this kiosk.</p>
+        <button class="btn btn-primary" data-go="attract">Start over</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Idle warning -->
+  <div class="modal" id="idle-modal" role="alertdialog" aria-modal="true" aria-labelledby="idle-title" hidden>
+    <div class="modal-card">
+      <h2 id="idle-title">Still there?</h2>
+      <p>For your privacy, this session will be erased in <strong id="idle-seconds">15</strong> seconds.</p>
+      <button class="btn btn-primary" id="idle-stay">I’m still here</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="js/fit-engine.js"></script>
+  <script src="js/catalog.js"></script>
+  <script src="js/avatar.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
