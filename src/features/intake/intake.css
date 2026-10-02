@@ -1,0 +1,39 @@
+.ti { display: grid; gap: var(--space-4); }
+.ti-label, .ti-legend { font-weight: 600; }
+.ti-nl { display: grid; gap: var(--space-2); }
+.ti-nl-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.ti-nl-row .ti-input { flex: 1 1 220px; min-width: 0; }
+.ti-input {
+  min-height: 44px; padding: 0 var(--space-3); font: inherit; color: var(--color-ink); width: 100%;
+  border: 1px solid #8b93a1; border-radius: var(--radius-sm); background: var(--color-surface);
+}
+.ti-nl-row .ti-input { width: auto; }
+.ti-help { font-size: 0.85rem; color: var(--color-muted); }
+.ti-voice--on { background: var(--color-danger-soft); border-color: var(--color-danger); color: var(--color-danger); }
+
+.ti-feedback { display: grid; gap: var(--space-3); }
+.ti-understood { padding: var(--space-3); background: var(--color-ok-soft); color: var(--color-ok); border-radius: var(--radius-sm); }
+.ti-question {
+  display: grid; gap: var(--space-2); padding: var(--space-3);
+  background: var(--color-accent-soft); border-left: 4px solid var(--color-accent); border-radius: var(--radius-sm);
+}
+.ti-question-text { font-weight: 600; color: var(--color-ink); }
+.ti-notice { padding: var(--space-3); background: var(--color-warn-soft); color: var(--color-warn); border-radius: var(--radius-sm); }
+.ti-notice--warn { background: var(--color-danger-soft); color: var(--color-danger); }
+
+.ti-fields {
+  display: grid; gap: var(--space-3); margin: 0; padding: var(--space-4);
+  border: 1px solid var(--color-line); border-radius: var(--radius-sm);
+}
+.ti-legend { padding: 0 var(--space-2); }
+.ti-field { display: grid; gap: var(--space-1); }
+.ti-field label { font-size: 0.9rem; color: var(--color-muted); font-weight: 600; }
+.ti-field--needed .ti-input { border-color: var(--color-danger); background: var(--color-danger-soft); }
+.ti-needed { font-size: 0.85rem; font-weight: 700; color: var(--color-danger); }
+
+.ti-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.ti-actions .ti-help { flex-basis: 100%; }
+
+@media (min-width: 640px) {
+  .ti-fields { grid-template-columns: repeat(2, 1fr); }
+}
